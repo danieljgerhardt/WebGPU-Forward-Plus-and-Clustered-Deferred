@@ -30,7 +30,8 @@ export class Lights {
 
     // TODO-2: add layouts, pipelines, textures, etc. needed for light clustering here
     //16 for offset, 4 bytes per light for idx, 16^3 partitioning of scene for clusters
-    static readonly clusterSetArraySize =  16 + (Lights.maxNumLights * 4) * 16 * 16 * 16;
+    static readonly clusterSetArraySize =  16 + (Lights.maxNumLights * 4) 
+    * shaders.constants.numClustersX * shaders.constants.numClustersY * shaders.constants.numClustersZ;
 
     clusterLightsComputeBindGroupLayout: GPUBindGroupLayout;
     clusterLightsComputeBindGroup: GPUBindGroup;
