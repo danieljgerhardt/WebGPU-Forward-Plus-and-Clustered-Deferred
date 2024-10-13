@@ -18,7 +18,7 @@ struct Cluster {
 }
 
 struct ClusterSet {
-    clusters: array<Cluster, 16 * 16 * 16>
+    clusters: array<Cluster, ${numClustersX} * ${numClustersY} * ${numClustersZ}>
 }
 
 struct CameraUniforms {

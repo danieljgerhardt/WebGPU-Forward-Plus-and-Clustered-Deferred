@@ -38,15 +38,15 @@ fn main(in: FragmentInput) -> @location(0) vec4f
     }
 
     //determine current cluster
-    let xFactor = 2.0 / 16.0;
-    let yFactor = 2.0 / 16.0;
-    let zFactor = 16.0;
+    let xFactor = 2.0 / f32(${numClustersX});
+    let yFactor = 2.0 / f32(${numClustersY});
+    let zFactor = f32(${numClustersZ});
     var transformedPos = cameraUniforms.viewProjMat * vec4(in.pos, 1.0);
     transformedPos /= transformedPos.w;
     let clusterX = f32(transformedPos.x) * xFactor - 1.0;
     let clusterY = f32(transformedPos.y) * yFactor - 1.0;
     let clusterZ = f32(transformedPos.z) / zFactor;
-    let clusterIdx = u32(clusterX + 16 * clusterY + 16 * 16 * clusterZ);
+    let clusterIdx = u32(clusterX + ${numClustersY} * clusterY + ${numClustersY} * ${numClustersZ} * clusterZ);
     let cluster = clusterSet.clusters[clusterIdx];
 
     var totalLightContrib = vec3f(0, 0, 0);

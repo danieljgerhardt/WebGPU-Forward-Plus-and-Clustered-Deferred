@@ -29,15 +29,15 @@
 @compute
 @workgroup_size(1, 1, 1)
 fn main(@builtin(global_invocation_id) globalIdx: vec3u) {
-    let idx = globalIdx.x + 16 * globalIdx.y + 16 * 16 * globalIdx.z;
-    if (idx >= 16 * 16 * 16) {
+    let idx = globalIdx.x + ${numClustersY} * globalIdx.y + ${numClustersY} * ${numClustersZ} * globalIdx.z;
+    if (idx >= ${numClustersX} * ${numClustersY} * ${numClustersZ}) {
         return;
     }
 
     //get NDC from [-1, 1]
-    let xFactor = 2.0 / 16.0;
-    let yFactor = 2.0 / 16.0;
-    let zFactor = 16.0;
+    let xFactor = 2.0 / f32(${numClustersX});
+    let yFactor = 2.0 / f32(${numClustersY});
+    let zFactor = f32(${numClustersZ});
     let minX = f32(globalIdx.x) * xFactor - 1.0;
     let maxX = f32(globalIdx.x + 1) * xFactor - 1.0;
     let minY = f32(globalIdx.y) * yFactor - 1.0;
