@@ -67,6 +67,8 @@ fn main(@builtin(global_invocation_id) globalIdx: vec3u) {
     let min = min(min(min(min(min(min(min(back1, back2), back3), back4), front1), front2), front3), front4);
     let max = max(max(max(max(max(max(max(back1, back2), back3), back4), front1), front2), front3), front4);
 
+    let cluster = &clusterSet.clusters[idx];
+
     var clusterLightCount = 0u;
     let r = f32(${lightRadius});
 
@@ -100,10 +102,10 @@ fn main(@builtin(global_invocation_id) globalIdx: vec3u) {
         }
         
         if (dist_squared > 0.0) {
-            clusterSet.clusters[idx].lights[clusterLightCount] = i;
+            cluster.lights[clusterLightCount] = i;
             clusterLightCount++;
         }
 
     }
-    clusterSet.clusters[idx].numLights = clusterLightCount;
+    cluster.numLights = clusterLightCount;
 }
