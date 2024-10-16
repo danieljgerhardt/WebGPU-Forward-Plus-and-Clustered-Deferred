@@ -47,7 +47,7 @@ fn main(in: FragmentInput) -> @location(0) vec4f
     let clusterY = f32(transformedPos.y) * yFactor - 1.0;
     let clusterZ = f32(transformedPos.z) / zFactor;
     let clusterIdx = u32(clusterX + ${numClustersY} * clusterY + ${numClustersY} * ${numClustersZ} * clusterZ);
-    let cluster = clusterSet.clusters[clusterIdx];
+    let cluster = &clusterSet.clusters[clusterIdx];
 
     var totalLightContrib = vec3f(0, 0, 0);
 

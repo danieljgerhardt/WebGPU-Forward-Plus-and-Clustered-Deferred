@@ -19,6 +19,12 @@ export class ClusteredDeferredRenderer extends renderer.Renderer {
     GBufferTextureView: GPUTextureView;
     GBufferTextureSampler: GPUSampler;
 
+    GBufferPosTexture: GPUTexture;
+    GBufferPosTextureView: GPUTextureView;
+
+    GBufferColTexture: GPUTexture;
+    GBufferColTextureView: GPUTextureView;
+
     GBufferPipeline: GPURenderPipeline;
     finalPassPipeline: GPURenderPipeline;
 
@@ -27,7 +33,7 @@ export class ClusteredDeferredRenderer extends renderer.Renderer {
 
         // TODO-3: initialize layouts, pipelines, textures, etc. needed for Forward+ here
         // you'll need two pipelines: one for the G-buffer pass and one for the fullscreen pass
-    
+
         this.GBufferSceneUniformsBindGroupLayout = renderer.device.createBindGroupLayout({
             label: "gbuffer scene uniforms bind group layout",
             entries: [
@@ -57,6 +63,20 @@ export class ClusteredDeferredRenderer extends renderer.Renderer {
         });
         this.GBufferTextureView = this.GBufferTexture.createView();
 
+        this.GBufferPosTexture = renderer.device.createTexture({
+            size: [renderer.canvas.width, renderer.canvas.height],
+            format: "rgba16float",
+            usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.TEXTURE_BINDING
+        });
+        this.GBufferPosTextureView = this.GBufferPosTexture.createView();
+
+        this.GBufferColTexture = renderer.device.createTexture({
+            size: [renderer.canvas.width, renderer.canvas.height],
+            format: "rgba16float",
+            usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.TEXTURE_BINDING
+        });
+        this.GBufferColTextureView = this.GBufferColTexture.createView();
+
         this.GBufferTextureSampler = renderer.device.createSampler({
             magFilter: 'linear',
             minFilter: 'linear',
@@ -64,12 +84,19 @@ export class ClusteredDeferredRenderer extends renderer.Renderer {
             addressModeV: 'clamp-to-edge'
         });
 
+        this.depthTexture = renderer.device.createTexture({
+            size: [renderer.canvas.width, renderer.canvas.height],
+            format: "depth24plus",
+            usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.TEXTURE_BINDING
+        });
+        this.depthTextureView = this.depthTexture.createView();
+
         this.finalPassSceneUniformsBindGroupLayout = renderer.device.createBindGroupLayout({
             label: "final pass scene uniforms bind group layout",
             entries: [
                 { // camera uniforms
                     binding: 0,
-                    visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT,
+                    visibility: GPUShaderStage.FRAGMENT,
                     buffer: { type: "uniform" }
                 },
                 { // lightSet
@@ -82,16 +109,40 @@ export class ClusteredDeferredRenderer extends renderer.Renderer {
                     visibility: GPUShaderStage.FRAGMENT,
                     buffer: { type: "read-only-storage" }
                 },
-                { // tex
+                { //g buffer pos
                     binding: 3,
+                    visibility: GPUShaderStage.FRAGMENT,
+                    texture: {
+                        sampleType: "float",
+                        viewDimension: "2d"
+                    }
+                },
+                { //g buffer col
+                    binding: 4,
+                    visibility: GPUShaderStage.FRAGMENT,
+                    texture: {
+                        sampleType: "float",
+                        viewDimension: "2d"
+                    }
+                },
+                { // g buffer tex
+                    binding: 5,
                     visibility: GPUShaderStage.FRAGMENT,
                     texture: { 
                         sampleType: "float",
                         viewDimension: "2d"
                      }
                 },
+                { // depth stencil
+                    binding: 6,
+                    visibility: GPUShaderStage.FRAGMENT,
+                    texture: {
+                        sampleType: "depth",
+                        viewDimension: "2d"
+                    }
+                },
                 { // texSampler
-                    binding: 4,
+                    binding: 7,
                     visibility: GPUShaderStage.FRAGMENT,
                     sampler: { type: "filtering" }
                 }
@@ -116,21 +167,26 @@ export class ClusteredDeferredRenderer extends renderer.Renderer {
                 },
                 {
                     binding: 3,
-                    resource: this.GBufferTextureView
+                    resource: this.GBufferPosTextureView
                 },
                 {
                     binding: 4,
+                    resource: this.GBufferColTextureView
+                },
+                {
+                    binding: 5,
+                    resource: this.GBufferTextureView
+                },
+                {
+                    binding: 6,
+                    resource: this.depthTextureView
+                },
+                {
+                    binding: 7,
                     resource: this.GBufferTextureSampler
                 }
             ]
         });
-
-        this.depthTexture = renderer.device.createTexture({
-            size: [renderer.canvas.width, renderer.canvas.height],
-            format: "depth24plus",
-            usage: GPUTextureUsage.RENDER_ATTACHMENT
-        });
-        this.depthTextureView = this.depthTexture.createView();
     
         this.GBufferPipeline = renderer.device.createRenderPipeline({
             layout: renderer.device.createPipelineLayout({
@@ -160,7 +216,13 @@ export class ClusteredDeferredRenderer extends renderer.Renderer {
                 }),
                 targets: [
                     {
-                        format: "rgba16float",
+                        format: "rgba16float"
+                    },
+                    {
+                        format: "rgba16float"
+                    },
+                    {
+                        format: "rgba16float"
                     }
                 ]
             }
@@ -170,22 +232,14 @@ export class ClusteredDeferredRenderer extends renderer.Renderer {
             layout: renderer.device.createPipelineLayout({
                 label: "final pass pipeline layout",
                 bindGroupLayouts: [
-                    this.finalPassSceneUniformsBindGroupLayout,
-                    renderer.modelBindGroupLayout,
-                    renderer.materialBindGroupLayout
+                    this.finalPassSceneUniformsBindGroupLayout
                 ]
             }),
-            depthStencil: {
-                depthWriteEnabled: false,
-                depthCompare: "less",
-                format: "depth24plus"
-            },
             vertex: {
                 module: renderer.device.createShaderModule({
                     label: "final pass vert shader",
                     code: shaders.clusteredDeferredFullscreenVertSrc
-                }),
-                buffers: [ renderer.vertexBufferLayout ]
+                })
             },
             fragment: {
                 module: renderer.device.createShaderModule({
@@ -194,7 +248,7 @@ export class ClusteredDeferredRenderer extends renderer.Renderer {
                 }),
                 targets: [
                     {
-                        format: renderer.canvasFormat,
+                        format: renderer.canvasFormat
                     }
                 ]
             }
@@ -212,6 +266,18 @@ export class ClusteredDeferredRenderer extends renderer.Renderer {
         const GBufferRenderPass = encoder.beginRenderPass({
             label: "gbuffer render pass",
             colorAttachments: [
+                {
+                    view: this.GBufferPosTextureView,
+                    clearValue: [0, 0, 0, 0],
+                    loadOp: "clear",
+                    storeOp: "store"
+                },
+                {
+                    view: this.GBufferColTextureView,
+                    clearValue: [0, 0, 0, 0],
+                    loadOp: "clear",
+                    storeOp: "store"
+                },
                 {
                     view: this.GBufferTextureView,
                     clearValue: [0, 0, 0, 0],
@@ -254,28 +320,13 @@ export class ClusteredDeferredRenderer extends renderer.Renderer {
                     loadOp: "clear",
                     storeOp: "store"
                 }
-            ],
-            depthStencilAttachment: {
-                view: this.depthTextureView,
-                depthClearValue: 1.0,
-                depthLoadOp: "clear",
-                depthStoreOp: "store"
-            }
+            ]
         });
 
         finalRenderPass.setPipeline(this.finalPassPipeline);
 
         finalRenderPass.setBindGroup(shaders.constants.bindGroup_scene, this.finalPassSceneUniformsBindGroup);
-
-        this.scene.iterate(node => {
-            finalRenderPass.setBindGroup(shaders.constants.bindGroup_model, node.modelBindGroup);
-        }, material => {
-            finalRenderPass.setBindGroup(shaders.constants.bindGroup_material, material.materialBindGroup);
-        }, primitive => {
-            finalRenderPass.setVertexBuffer(0, primitive.vertexBuffer);
-            finalRenderPass.setIndexBuffer(primitive.indexBuffer, 'uint32');
-            finalRenderPass.drawIndexed(primitive.numIndices);
-        });
+        finalRenderPass.draw(6);
 
         finalRenderPass.end();
 

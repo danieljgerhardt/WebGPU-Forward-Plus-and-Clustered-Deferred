@@ -4,26 +4,12 @@
 
 @group(${bindGroup_scene}) @binding(0) var<uniform> cameraUniforms: CameraUniforms;
 
-struct VertexInput
-{
-    @location(0) pos: vec3f,
-    @location(1) nor: vec3f,
-    @location(2) uv: vec2f
-}
-
-struct VertexOutput
-{
-    @builtin(position) fragPos: vec4f,
-    @location(0) pos: vec3f,
-    @location(1) nor: vec3f,
-    @location(2) uv: vec2f
-}
-
 @vertex
-fn main(in: VertexInput) -> VertexOutput
-{
-    var out: VertexOutput;
-    out.fragPos = cameraUniforms.viewProjMat * vec4(in.pos, 1);
-    out.uv = in.uv;
-    return out;
+fn main(@builtin(vertex_index) VertexIndex : u32) -> @builtin(position) vec4f {
+  const pos = array(
+    vec2(-1.0, -1.0), vec2(1.0, -1.0), vec2(-1.0, 1.0),
+    vec2(-1.0, 1.0), vec2(1.0, -1.0), vec2(1.0, 1.0),
+  );
+
+  return vec4f(pos[VertexIndex], 0.0, 1.0);
 }
