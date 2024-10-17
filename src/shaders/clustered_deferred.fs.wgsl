@@ -57,6 +57,7 @@ fn main(in: FragmentInput) -> GBufferOut
 
     var octahedron_nor = Encode(in.nor);
     var packed_color = packColor((diffuseColor * 255.0).xyz);
+    packed_color = f32(pack2x16float((vec2f(packed_color, packed_color))));
 
     var transformedPos = cameraUniforms.viewProjMat * vec4(in.pos, 1.0);
 
