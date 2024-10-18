@@ -45,9 +45,8 @@ fn main(@builtin(position) fragCoord: vec4<f32>) -> @location(0) vec4f
 
     var diffuseColor = vec4f(f32(sample.y) / 255.0, f32(sample.z) / 255.0, f32(sample.w) / 255.0, 1.0);
 
-    let invViewProjMat = cameraUniforms.invProjMat * cameraUniforms.invViewMat;
     let sampleDepth = textureLoad(depthTexture, texCoords, 0u);
-    let worldSpacePos = vec4f(world_from_screen_coord(invViewProjMat, screenUV, sampleDepth), 1.0);
+    let worldSpacePos = vec4f(world_from_screen_coord(cameraUniforms.invViewProjMat, screenUV, sampleDepth), 1.0);
     let posNDCSpaceW = cameraUniforms.viewProjMat * worldSpacePos;
     let posNDCSpace = posNDCSpaceW.xyz / posNDCSpaceW.www;
     let clusterX = u32((posNDCSpace.x + 1.0) * 0.5 * f32(${numClustersX}));
@@ -64,6 +63,5 @@ fn main(@builtin(position) fragCoord: vec4<f32>) -> @location(0) vec4f
     }
 
     var finalColor = diffuseColor.xyz * totalLightContrib;
-    finalColor = vec3(sampledDepth, 0.0, 0.0);
     return vec4(finalColor, 1.0);
 }
