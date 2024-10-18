@@ -5,19 +5,8 @@
 @group(${bindGroup_scene}) @binding(0) var<uniform> cameraUniforms: CameraUniforms;
 @group(${bindGroup_scene}) @binding(1) var<storage, read> lightSet: LightSet;
 @group(${bindGroup_scene}) @binding(2) var<storage, read> clusterSet: ClusterSet;
-@group(${bindGroup_scene}) @binding(3) var gbufferPos: texture_2d<f32>;
-@group(${bindGroup_scene}) @binding(4) var gbufferCol: texture_2d<f32>;
-@group(${bindGroup_scene}) @binding(5) var gbuffer: texture_2d<f32>;
-@group(${bindGroup_scene}) @binding(6) var depthTexture: texture_depth_2d;
-@group(${bindGroup_scene}) @binding(7) var gbufferSampler: sampler;
-
-fn unpackColor(f: f32) -> vec3<f32> {
-    var blue = floor(f / 256.0 / 256.0);
-    var green = floor((f - blue * 256.0 * 256.0) / 256.0);
-    var red = floor(f - blue * 256.0 * 256.0 - green * 256.0);
-    // now we have a vec3 with the 3 components in range [0..255]. Let's normalize it!
-    return vec3(red, green, blue) / 255.0;
-}
+@group(${bindGroup_scene}) @binding(3) var gbuffer: texture_2d<u32>;
+@group(${bindGroup_scene}) @binding(4) var depthTexture: texture_depth_2d;
 
 fn Decode(f : vec2<f32>) -> vec3<f32> {
     var f_var = f * 2.0 - 1.0;
@@ -35,29 +24,30 @@ fn Decode(f : vec2<f32>) -> vec3<f32> {
     return normalize(n);
 }
 
-fn view_from_screen_coord(invProjMat : mat4x4f, coord : vec2f, depth_sample: f32) -> vec3f {
+fn world_from_screen_coord(invViewProjMat : mat4x4f, coord : vec2f, depth_sample: f32) -> vec3f {
   // reconstruct world-space position from the screen coordinate.
   let posClip = vec4(coord.x * 2.0 - 1.0, (1.0 - coord.y) * 2.0 - 1.0, depth_sample, 1.0);
-  var posViewW = invProjMat * posClip;
-  var posView = posViewW.xyz / posViewW.www;
-  return posView;
+  let posWorldW = invViewProjMat * posClip;
+  let posWorld = posWorldW.xyz / posWorldW.www;
+  return posWorld;
 }
 
 @fragment
 fn main(@builtin(position) fragCoord: vec4<f32>) -> @location(0) vec4f
 {
     let texDims = textureDimensions(gbuffer);
+    let texCoords = vec2u(fragCoord.xy);
     var screenUV = vec2(fragCoord.x / f32(texDims.x), fragCoord.y / f32(texDims.y));
-    var sample = textureSample(gbuffer, gbufferSampler, screenUV);
-    var decodedNor = Decode(sample.xy);
-    var unpackedColor = unpackColor(unpack2x16float(u32(sample.z)).x);
-    var diffuseColor = textureSample(gbufferCol, gbufferSampler, screenUV);
+    var sample = textureLoad(gbuffer, texCoords, 0u);
 
-    if (diffuseColor.a < 0.5f) {
-        discard;
-    }
+    var uint_nor = unpack2x16unorm(sample.x);
+    var decodedNor = Decode(uint_nor);
 
-    let worldSpacePos = textureSample(gbufferPos, gbufferSampler, screenUV);
+    var diffuseColor = vec4f(f32(sample.y) / 255.0, f32(sample.z) / 255.0, f32(sample.w) / 255.0, 1.0);
+
+    let invViewProjMat = cameraUniforms.invProjMat * cameraUniforms.invViewMat;
+    let sampleDepth = textureLoad(depthTexture, texCoords, 0u);
+    let worldSpacePos = vec4f(world_from_screen_coord(invViewProjMat, screenUV, sampleDepth), 1.0);
     let posNDCSpaceW = cameraUniforms.viewProjMat * worldSpacePos;
     let posNDCSpace = posNDCSpaceW.xyz / posNDCSpaceW.www;
     let clusterX = u32((posNDCSpace.x + 1.0) * 0.5 * f32(${numClustersX}));
@@ -74,5 +64,6 @@ fn main(@builtin(position) fragCoord: vec4<f32>) -> @location(0) vec4f
     }
 
     var finalColor = diffuseColor.xyz * totalLightContrib;
+    finalColor = vec3(sampledDepth, 0.0, 0.0);
     return vec4(finalColor, 1.0);
 }

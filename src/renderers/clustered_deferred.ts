@@ -17,13 +17,6 @@ export class ClusteredDeferredRenderer extends renderer.Renderer {
 
     GBufferTexture: GPUTexture;
     GBufferTextureView: GPUTextureView;
-    GBufferTextureSampler: GPUSampler;
-
-    GBufferPosTexture: GPUTexture;
-    GBufferPosTextureView: GPUTextureView;
-
-    GBufferColTexture: GPUTexture;
-    GBufferColTextureView: GPUTextureView;
 
     GBufferPipeline: GPURenderPipeline;
     finalPassPipeline: GPURenderPipeline;
@@ -58,31 +51,10 @@ export class ClusteredDeferredRenderer extends renderer.Renderer {
 
         this.GBufferTexture = renderer.device.createTexture({
             size: [renderer.canvas.width, renderer.canvas.height],
-            format: "rgba16float",
+            format: "rgba32uint",
             usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.TEXTURE_BINDING
         });
         this.GBufferTextureView = this.GBufferTexture.createView();
-
-        this.GBufferPosTexture = renderer.device.createTexture({
-            size: [renderer.canvas.width, renderer.canvas.height],
-            format: "rgba16float",
-            usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.TEXTURE_BINDING
-        });
-        this.GBufferPosTextureView = this.GBufferPosTexture.createView();
-
-        this.GBufferColTexture = renderer.device.createTexture({
-            size: [renderer.canvas.width, renderer.canvas.height],
-            format: "rgba16float",
-            usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.TEXTURE_BINDING
-        });
-        this.GBufferColTextureView = this.GBufferColTexture.createView();
-
-        this.GBufferTextureSampler = renderer.device.createSampler({
-            magFilter: 'linear',
-            minFilter: 'linear',
-            addressModeU: 'clamp-to-edge',
-            addressModeV: 'clamp-to-edge'
-        });
 
         this.depthTexture = renderer.device.createTexture({
             size: [renderer.canvas.width, renderer.canvas.height],
@@ -109,42 +81,21 @@ export class ClusteredDeferredRenderer extends renderer.Renderer {
                     visibility: GPUShaderStage.FRAGMENT,
                     buffer: { type: "read-only-storage" }
                 },
-                { //g buffer pos
+                { // g buffer tex
                     binding: 3,
                     visibility: GPUShaderStage.FRAGMENT,
-                    texture: {
-                        sampleType: "float",
-                        viewDimension: "2d"
-                    }
-                },
-                { //g buffer col
-                    binding: 4,
-                    visibility: GPUShaderStage.FRAGMENT,
-                    texture: {
-                        sampleType: "float",
-                        viewDimension: "2d"
-                    }
-                },
-                { // g buffer tex
-                    binding: 5,
-                    visibility: GPUShaderStage.FRAGMENT,
                     texture: { 
-                        sampleType: "float",
+                        sampleType: "uint",
                         viewDimension: "2d"
                      }
                 },
                 { // depth stencil
-                    binding: 6,
+                    binding: 4,
                     visibility: GPUShaderStage.FRAGMENT,
                     texture: {
                         sampleType: "depth",
                         viewDimension: "2d"
                     }
-                },
-                { // texSampler
-                    binding: 7,
-                    visibility: GPUShaderStage.FRAGMENT,
-                    sampler: { type: "filtering" }
                 }
             ]
         });
@@ -167,23 +118,11 @@ export class ClusteredDeferredRenderer extends renderer.Renderer {
                 },
                 {
                     binding: 3,
-                    resource: this.GBufferPosTextureView
-                },
-                {
-                    binding: 4,
-                    resource: this.GBufferColTextureView
-                },
-                {
-                    binding: 5,
                     resource: this.GBufferTextureView
                 },
                 {
-                    binding: 6,
+                    binding: 4,
                     resource: this.depthTextureView
-                },
-                {
-                    binding: 7,
-                    resource: this.GBufferTextureSampler
                 }
             ]
         });
@@ -216,13 +155,7 @@ export class ClusteredDeferredRenderer extends renderer.Renderer {
                 }),
                 targets: [
                     {
-                        format: "rgba16float"
-                    },
-                    {
-                        format: "rgba16float"
-                    },
-                    {
-                        format: "rgba16float"
+                        format: "rgba32uint"
                     }
                 ]
             }
@@ -266,18 +199,6 @@ export class ClusteredDeferredRenderer extends renderer.Renderer {
         const GBufferRenderPass = encoder.beginRenderPass({
             label: "gbuffer render pass",
             colorAttachments: [
-                {
-                    view: this.GBufferPosTextureView,
-                    clearValue: [0, 0, 0, 0],
-                    loadOp: "clear",
-                    storeOp: "store"
-                },
-                {
-                    view: this.GBufferColTextureView,
-                    clearValue: [0, 0, 0, 0],
-                    loadOp: "clear",
-                    storeOp: "store"
-                },
                 {
                     view: this.GBufferTextureView,
                     clearValue: [0, 0, 0, 0],
