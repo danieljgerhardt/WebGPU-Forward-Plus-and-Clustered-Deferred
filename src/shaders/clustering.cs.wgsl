@@ -32,7 +32,6 @@ fn main(@builtin(global_invocation_id) globalIdx: vec3u) {
     if (globalIdx.x >= ${numClustersX} || globalIdx.y >= ${numClustersY} || globalIdx.z >= ${numClustersZ}) {
         return;
     }
-
     let idx = globalIdx.x + ${numClustersY} * globalIdx.y + ${numClustersY} * ${numClustersZ} * globalIdx.z;
     
     let minX = -1.0 + 2.0 * f32(globalIdx.x) / f32(${numClustersX});
