@@ -14,7 +14,7 @@ WebGL Forward+ and Clustered Deferred Shading
 
 ### Demo Video/GIF
 
-[![](img/video.mp4)](TODO)
+![](img/webgpurenderer.mp4)
 
 ### Description
 
@@ -27,6 +27,15 @@ This project is an implementation of 3 different render modes using WebGPU. The 
   - The clustered deferred renderer is similar to Forward+ but with the addition of deferred rendering. In the first pass, the depth, normal, and color are written to a single 4 channel texture. Then, in the second pass, the position is reconstructed from depth, and the same lighting strategy from Forward+ is used.
 
 To toggle between the modes or change the number of lights, use the controls at the top right of the page.
+
+### Performance Analysis
+
+![](img/chart1.png)
+![](img/chart2.png)
+![](img/chart3.png)
+![](img/chart4.png)
+![](img/chart5.png)
+![](img/chart6.png)
 
 ### Credits
 
