@@ -46,6 +46,8 @@ fn main(in: FragmentInput) -> @location(0) vec4u
 
     var octahedron_nor = Encode(in.nor);
     var uint_nor = pack2x16unorm(octahedron_nor);
+    var depth = in.pos.z;
+    var packed_col = pack4x8unorm(diffuseColor);
 
-    return vec4u(uint_nor, u32(diffuseColor.x * 255.0), u32(diffuseColor.y * 255.0), u32(diffuseColor.z * 255.0));
+    return vec4u(uint_nor, packed_col, bitcast<u32>(depth), 1);
 }

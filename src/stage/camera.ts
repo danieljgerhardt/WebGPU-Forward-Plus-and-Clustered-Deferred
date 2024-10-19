@@ -13,15 +13,16 @@ class CameraUniforms {
 
     // TODO-2: add extra functions to set values needed for light clustering here
     set invProjMat(mat: Float32Array) {
-        this.floatView.set(mat.subarray(16, 32), 0);
+        this.floatView.set(mat.subarray(0, 16), 16);
     }
 
     set viewMat(mat: Float32Array) {
         this.floatView.set(mat.subarray(32, 48), 0);
+        //this.floatView.set(mat.subarray(0, 16), 32);
     }
 
     set invViewProjMat(mat: Float32Array) {
-        this.floatView.set(mat.subarray(48, 64), 0);
+        this.floatView.set(mat.subarray(0, 16), 48);
     }
 }
 
@@ -148,9 +149,11 @@ export class Camera {
         // TODO-1.1: set `this.uniforms.viewProjMat` to the newly calculated view proj mat
         this.uniforms.viewProjMat = viewProjMat;
         // TODO-2: write to extra buffers needed for light clustering here
-        this.uniforms.invProjMat = mat4.inverse(this.projMat);
+        const projMat = this.projMat;
+        this.uniforms.invProjMat = projMat;
         this.uniforms.viewMat = viewMat;
-        this.uniforms.invViewProjMat = mat4.inverse(viewProjMat);
+        
+        this.uniforms.invViewProjMat = mat4.invert(viewProjMat);
 
         // TODO-1.1: upload `this.uniforms.buffer` (host side) to `this.uniformsBuffer` (device side)
         // check `lights.ts` for examples of using `device.queue.writeBuffer()`
