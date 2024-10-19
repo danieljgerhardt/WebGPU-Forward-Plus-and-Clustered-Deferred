@@ -28,6 +28,8 @@ This project is an implementation of 3 different render modes using WebGPU. The 
 
 To toggle between the modes or change the number of lights, use the controls at the top right of the page.
 
+The extra feature I implemeted was GBuffer compression. In the non-compressed version we are expected to have 3 textures, one for color, one for position, and one for normal. This can be compressed to one texture with 4 uint channels. With octahedron normal encoding and packing 2 floats at half precision into one, one channel is for normal. Then, color can be packed into 2 channels by converting 2 unsigned normalized floats into one channel, and the other into the third. The last channel is for depth. The challenging piece of this process is to reconstruct position from depth, which is done by storing depth in world space, and using screen space and spatial transformations to yield a world space position through one uint of storage.
+
 ### Performance Analysis
 
 There are a number of factors to take into consideration that impact performance. The most obvious is the render modes themselves, which innately will change the way the program runs. But, there is also the number of clusters, the max number of lights per cluster, the workgroup size for the clustering, and the G Buffer compression to consider.
