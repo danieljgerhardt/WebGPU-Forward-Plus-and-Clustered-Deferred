@@ -16,9 +16,16 @@ WebGL Forward+ and Clustered Deferred Shading
 
 [![](img/video.mp4)](TODO)
 
-### (TODO: Your README)
+### Description
 
-
+This project is an implementation of 3 different render modes using WebGPU. The modes are:
+- Naive
+  - The naive render uses a standard forward rendering pipeline which runs through each light for each pixel to do lighting computations.
+- Forward+
+  - The forward+ renderer increases performance by dividing the screen into clusters. A compute shader assigns eaach of these clusters the lights that act within its region, up to a certain maximum. Then the rendering is done in one pass, where each fragment is placed into a cluster and only does computations for the lights in that cluster.
+- Clustered Deferred
+ - The clustered deferred renderer is similar to Forward+ but with the addition of deferred rendering. In the first pass, the depth, normal, and color are written to a single 4 channel texture. Then, in the second pass, the position is reconstructed from depth, and the same lighting strategy from Forward+ is used.
+To toggle between the modes on the webpage or change the number of lights, use the controls at the top right of the page.
 
 ### Credits
 
