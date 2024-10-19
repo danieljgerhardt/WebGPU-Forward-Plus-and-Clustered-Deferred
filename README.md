@@ -26,7 +26,7 @@ This project is an implementation of 3 different render modes using WebGPU. The 
 - Clustered Deferred
   - The clustered deferred renderer is similar to Forward+ but with the addition of deferred rendering. In the first pass, the depth, normal, and color are written to a single 4 channel texture. Then, in the second pass, the position is reconstructed from depth, and the same lighting strategy from Forward+ is used.
 
-To toggle between the modes on the webpage or change the number of lights, use the controls at the top right of the page.
+To toggle between the modes or change the number of lights, use the controls at the top right of the page.
 
 ### Credits
 
