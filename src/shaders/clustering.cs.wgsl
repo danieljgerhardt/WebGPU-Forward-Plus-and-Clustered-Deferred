@@ -27,23 +27,22 @@
 //     - Store the number of lights assigned to this cluster.
 
 @compute
-@workgroup_size(1, 1, 1)
+@workgroup_size(${workgroupSizeX}, ${workgroupSizeY}, ${workgroupSizeZ})
 fn main(@builtin(global_invocation_id) globalIdx: vec3u) {
-    let idx = globalIdx.x + ${numClustersY} * globalIdx.y + ${numClustersY} * ${numClustersZ} * globalIdx.z;
-    if (idx >= ${numClustersX} * ${numClustersY} * ${numClustersZ}) {
+    if (globalIdx.x >= ${numClustersX} || globalIdx.y >= ${numClustersY} || globalIdx.z >= ${numClustersZ}) {
         return;
     }
 
-    //get NDC from [-1, 1]
-    let xFactor = 2.0 / f32(${numClustersX});
-    let yFactor = 2.0 / f32(${numClustersY});
-    let zFactor = f32(${numClustersZ});
-    let minX = f32(globalIdx.x) * xFactor - 1.0;
-    let maxX = f32(globalIdx.x + 1) * xFactor - 1.0;
-    let minY = f32(globalIdx.y) * yFactor - 1.0;
-    let maxY = f32(globalIdx.y + 1) * yFactor - 1.0;
-    let minZ = f32(globalIdx.z) / zFactor;
-    let maxZ = f32(globalIdx.z + 1) / zFactor;
+    let idx = globalIdx.x + ${numClustersY} * globalIdx.y + ${numClustersY} * ${numClustersZ} * globalIdx.z;
+    
+    let minX = -1.0 + 2.0 * f32(globalIdx.x) / f32(${numClustersX});
+    let maxX = -1.0 + 2.0 * f32(globalIdx.x + 1) / f32(${numClustersX});
+    let minY = -1.0 + 2.0 * f32(globalIdx.y) / f32(${numClustersY});
+    let maxY = -1.0 + 2.0 * f32(globalIdx.y + 1) / f32(${numClustersY});
+    let minZView = -0.1 * exp(f32(globalIdx.z) * log(1000.0 / 0.1) / f32(${numClustersZ}));
+    let maxZView = -0.1 * exp(f32(globalIdx.z + 1) * log(1000.0 / 0.1) / f32(${numClustersZ}));
+    let minZ = (cameraUniforms.projMat[2][2] * minZView + cameraUniforms.projMat[3][2]) / (cameraUniforms.projMat[2][3] * minZView + cameraUniforms.projMat[3][3]);
+    let maxZ = (cameraUniforms.projMat[2][2] * maxZView + cameraUniforms.projMat[3][2]) / (cameraUniforms.projMat[2][3] * maxZView + cameraUniforms.projMat[3][3]);
 
     var back1 = cameraUniforms.invProjMat * vec4(minX, minY, minZ, 1.0);
     back1 /= back1.w;
@@ -75,7 +74,8 @@ fn main(@builtin(global_invocation_id) globalIdx: vec3u) {
     for (var i = 0u; i < lightSet.numLights && clusterLightCount < u32(${maxLightsPerCluster}); i++) {
         let currLight = lightSet.lights[i];
         let lightPos = currLight.pos;
-        let transformedLight = cameraUniforms.viewMat * vec4(lightPos, 1.0);
+        let transformedLightH = cameraUniforms.viewMat * vec4(lightPos, 1.0);
+        let transformedLight = transformedLightH.xyzw / transformedLightH.w;
 
         //https://stackoverflow.com/questions/4578967/cube-sphere-intersection-test/4579069#4579069
         var dist_squared = r * r;

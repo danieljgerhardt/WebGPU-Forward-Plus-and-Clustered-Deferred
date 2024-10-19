@@ -38,14 +38,13 @@ fn main(in: FragmentInput) -> @location(0) vec4f
     }
 
     //determine current cluster
-    let xFactor = 2.0 / f32(${numClustersX});
-    let yFactor = 2.0 / f32(${numClustersY});
-    let zFactor = f32(${numClustersZ});
-    var transformedPos = cameraUniforms.viewProjMat * vec4(in.pos, 1.0);
-    transformedPos /= transformedPos.w;
-    let clusterX = f32(transformedPos.x) * xFactor - 1.0;
-    let clusterY = f32(transformedPos.y) * yFactor - 1.0;
-    let clusterZ = f32(transformedPos.z) / zFactor;
+    var posNDCSpace = cameraUniforms.viewProjMat * vec4(in.pos, 1.0);
+    posNDCSpace /= posNDCSpace.w;
+    let clusterX = u32((posNDCSpace.x + 1.0) * 0.5 * f32(${numClustersX}));
+    let clusterY = u32((posNDCSpace.y + 1.0) * 0.5 * f32(${numClustersY}));
+    let posViewSpace = cameraUniforms.viewProjMat * vec4f(in.pos.x ,in.pos.y, in.pos.z, 1.0);
+    let viewZ = clamp(-posViewSpace.z, 0.1, 1000.0);
+    let clusterZ = u32(log(viewZ / 0.1) / log(1000.0 / 0.1) * f32(${numClustersZ}));
     let clusterIdx = u32(clusterX + ${numClustersY} * clusterY + ${numClustersY} * ${numClustersZ} * clusterZ);
     let cluster = &clusterSet.clusters[clusterIdx];
 
