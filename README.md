@@ -30,11 +30,23 @@ To toggle between the modes or change the number of lights, use the controls at 
 
 ### Performance Analysis
 
+There are a number of factors to take into consideration that impact performance. The most obvious is the render modes themselves, which innately will change the way the program runs. But, there is also the number of clusters, the max number of lights per cluster, the workgroup size for the clustering, and the G Buffer compression to consider.
+
+#### Comparing All Render Modes
+
 ![](img/chart1.png)
+
+Using the stats shown in the chart subtitle to normalize across modes, we can analyze at a base level how the 3 render modes compare. Rather obviously, the naive does not hold a candle to the performance of the other two modes, and clustered deferred is a step above Forward+.
+
+### Varying Features
+
 ![](img/chart2.png)
 ![](img/chart3.png)
 ![](img/chart4.png)
 ![](img/chart5.png)
+
+#### G Buffer Compression (Extra feature)
+
 ![](img/chart6.png)
 
 ### Credits
