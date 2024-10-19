@@ -40,14 +40,29 @@ Using the stats shown in the chart subtitle to normalize across modes, we can an
 
 ### Varying Features
 
-![](img/chart2.png)
+Naive is not counted among these performance comparisons since it would not see an impact from editing the details of the other pipelines.
+
 ![](img/chart3.png)
+
+Here we increase the maximum number of lights per cluster to see the performance impact. This shows the limits of the latter 2 render modes, as in the first chart they were stably above naive. Here they decrease in performance as light count increases and the clusters are saturated with lights. Clustered deferred is still well above the performance of Forward+.
+
+![](img/chart2.png)
+
+Here we double the count of clusters in each dimension. Surprisingly this did not notably change the performance from 8x8x8.
+
 ![](img/chart4.png)
+
+Keeping the 16x16x16 cluster dimension and increasing the light count now. 
+
 ![](img/chart5.png)
+
+As seen from the above 2 charts, we against see the limit being tested of the latter 2 rendering modes. Whereas the first limit discovered was with 8x8x8 clusters and 2000 max lights per cluster, a similar performance is seen with 16x16x16 clusters and 1500 max lights per cluster. It seems light count has a greater performance difference than cluster count, but this cannot be tested to a great extent due to the buffer size limitation in WebGPU.
 
 #### G Buffer Compression (Extra feature)
 
 ![](img/chart6.png)
+
+I did not record any performance difference between the two render methods, and unfortuantely desktop GPU tools cannot be used on WebGPU to profile and see how much time per frame is memory bound. I can see as shown above that the texture size is greater in the uncompressed version, but interestingly the buffer size is also smaller, which I cannot reason out.
 
 ### Credits
 
