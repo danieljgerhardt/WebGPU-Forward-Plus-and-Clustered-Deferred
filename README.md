@@ -66,6 +66,10 @@ As seen from the above 2 charts, we against see the limit being tested of the la
 
 I did not record any performance difference between the two render methods, and unfortuantely desktop GPU tools cannot be used on WebGPU to profile and see how much time per frame is memory bound. I can see as shown above that the texture size is greater in the uncompressed version, but interestingly the buffer size is also smaller, which I cannot reason out.
 
+#### Takeaways
+
+The clustered deferred renderer is very strong, and regularly outperforms the other two methods. Both the Forward+ and deferred techniques are much stronger than the naive approach. They do have limitations, the first of which is that the max light count can make the scene darker than is accurate. Increasing the light count and increasing the number of clusters both decrease the performance for the deferred and Forward+ methods, but do not affect the naive method. Even with these hits they outperform naive very heavily. Limiting the max light count per cluster does prevent performance dips, at the cost of accuracy of brightness. When the light count is increased enough to not saturate the clusters completely, the performance dips heavily. The relative performance dips are the same between Forward+ and deferred, but deferred regularly outperforms Forward+.
+
 ### Credits
 
 - [Vite](https://vitejs.dev/)
