@@ -33,7 +33,7 @@ The extra feature I implemeted was GBuffer compression. In the non-compressed ve
 
 ### Performance Analysis
 
-There are a number of factors to take into consideration that impact performance. The most obvious is the render modes themselves, which innately will change the way the program runs. But, there is also the number of clusters, the max number of lights per cluster, the workgroup size for the clustering, and the G Buffer compression to consider.
+There are a number of factors to take into consideration that impact performance. The most obvious is the render modes themselves, which innately will change the way the program runs. But, there is also the number of clusters, the max number of lights per cluster, the workgroup size for the clustering, and the G Buffer compression to consider. The following charts show time in milliseconds per frame rendered, which gives a good estimation on the amount of average time it took to execute each render mode. The tests were executed 3 times each per mode, and the results shown are the averages of those tests.
 
 #### Comparing All Render Modes
 
