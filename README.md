@@ -41,7 +41,7 @@ There are a number of factors to take into consideration that impact performance
 
 Using the stats shown in the chart subtitle to normalize across modes, we can analyze at a base level how the 3 render modes compare. Rather obviously, the naive does not hold a candle to the performance of the other two modes, and clustered deferred is a step above Forward+.
 
-### Varying Features
+#### Varying Features
 
 Naive is not counted among these performance comparisons since it would not see an impact from editing the details of the other pipelines.
 
