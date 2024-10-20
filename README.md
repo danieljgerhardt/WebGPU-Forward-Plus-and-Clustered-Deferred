@@ -45,11 +45,11 @@ Using the stats shown in the chart subtitle to normalize across modes, we can an
 
 Naive is not counted among these performance comparisons since it would not see an impact from editing the details of the other pipelines.
 
-![](img/chart3.png)
+![](img/chart2.png)
 
 Here we increase the maximum number of lights per cluster to see the performance impact. This shows the limits of the latter 2 render modes, as in the first chart they were stably above naive. Here they decrease in performance as light count increases and the clusters are saturated with lights. Clustered deferred is still well above the performance of Forward+.
 
-![](img/chart2.png)
+![](img/chart3.png)
 
 Here we double the count of clusters in each dimension. Surprisingly this did not notably change the performance from 8x8x8.
 
