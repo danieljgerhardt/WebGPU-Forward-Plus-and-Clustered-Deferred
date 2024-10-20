@@ -14,7 +14,7 @@ WebGL Forward+ and Clustered Deferred Shading
 
 ### Demo Video/GIF
 
-![](img/demovideocompressed.mp4)
+[![](img/webgpurendererdemo.mp4)](TODO)
 
 ### Description
 
